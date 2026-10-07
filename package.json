@@ -1,0 +1,13 @@
+{
+  "name": "blackjack-learning-game",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Blackjack basic-strategy trainer with real gameplay, cash and Hi-Lo counting",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "generate": "node tools/generate-strategy.mjs",
+    "chart": "node tools/print-chart.mjs",
+    "serve": "npx http-server -c-1 -p 8080 ."
+  }
+}

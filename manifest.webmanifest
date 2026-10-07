@@ -1,0 +1,16 @@
+{
+  "name": "Blackjack Trainer",
+  "short_name": "Blackjack",
+  "description": "Learn basic strategy while playing real hands with cash.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2e3b45",
+  "theme_color": "#2e3b45",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

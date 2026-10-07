@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Blackjack Trainer</title>
+  <meta name="description" content="Learn blackjack basic strategy while playing real hands with cash.">
+  <meta name="theme-color" content="#2e3b45">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Blackjack">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <main id="screens">
+    <!-- PRACTICE -->
+    <section id="tab-practice" class="screen active" aria-label="Practice">
+      <header class="topbar">
+        <div class="bank"><span class="coin"></span><span id="bankroll">$1,000</span></div>
+        <div id="count-badge" class="count-badge hidden"></div>
+        <div class="mini-stats" id="mini-stats"></div>
+      </header>
+
+      <div class="table" id="table">
+        <div class="felt">
+          <div class="side-label">Dealer</div>
+          <div class="dealer-area">
+            <div class="cards" id="dealer-cards"></div>
+            <div class="total" id="dealer-total"></div>
+          </div>
+          <div class="side-label">Player</div>
+          <div class="player-area" id="player-hands"></div>
+          <div class="round-msg" id="round-msg"></div>
+        </div>
+
+        <div class="actions" id="actions">
+          <button class="btn" data-act="hint" id="btn-hint">Hint</button>
+          <div class="feedback" id="feedback"></div>
+          <button class="btn" data-act="S">Stand</button>
+          <button class="btn" data-act="H">Hit</button>
+          <button class="btn" data-act="D">Double</button>
+          <button class="btn" data-act="P">Split</button>
+          <button class="btn small" data-act="R">Surrender</button>
+          <button class="btn deal hidden" id="btn-deal">Deal</button>
+        </div>
+      </div>
+
+      <div class="warn-panel hidden" id="warn-panel" role="dialog" aria-live="polite">
+        <div id="warn-text"></div>
+        <div class="warn-buttons">
+          <button class="btn primary" id="warn-book">Book play</button>
+          <button class="btn" id="warn-mine">My play</button>
+        </div>
+      </div>
+
+      <div class="insurance-panel hidden" id="insurance-panel">
+        <div id="insurance-text">Insurance?</div>
+        <div class="warn-buttons">
+          <button class="btn" id="ins-yes">Yes</button>
+          <button class="btn primary" id="ins-no">No</button>
+        </div>
+      </div>
+
+      <div class="betbar" id="betbar">
+        <div class="chips">
+          <button class="chip c5" data-chip="5">5</button>
+          <button class="chip c15" data-chip="15">15</button>
+          <button class="chip c25" data-chip="25">25</button>
+          <button class="chip c100" data-chip="100">100</button>
+        </div>
+        <div class="bet-info">
+          <div>Bet <b id="bet-amount">$15</b></div>
+          <button class="link" id="bet-clear">Clear</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="seg" id="mode-seg" role="tablist" aria-label="Mode">
+          <button data-mode="all">All</button><button data-mode="soft">Soft</button><button data-mode="pairs">Pairs</button><button data-mode="custom">Cust</button><button data-mode="drill">Drill</button>
+        </div>
+        <button class="skill" id="skill-btn"><small>Skill:</small><span id="skill-label">Norm</span></button>
+      </div>
+      <button class="rules-summary" id="rules-summary"></button>
+    </section>
+
+    <!-- STRATEGY -->
+    <section id="tab-strategy" class="screen scroll" aria-label="Strategy">
+      <h1 class="title">Basic Strategy</h1>
+      <div class="jump"><button data-jump="hard">Hard</button><button data-jump="soft">Soft</button><button data-jump="pairs">Pairs</button><button data-jump="legend">Rules / Legend</button></div>
+      <div id="strategy-cards"></div>
+    </section>
+
+    <!-- HOUSE RULES -->
+    <section id="tab-rules" class="screen scroll" aria-label="House Rules">
+      <h1 class="title">House Rules</h1>
+      <div class="group-title">House Rules Settings</div>
+      <div class="form" id="rules-form"></div>
+      <div class="group-title">Common House Rules Variations</div>
+      <div class="presets" id="presets"></div>
+      <p class="note" id="rules-note">Changes apply from the next hand. The strategy card updates immediately.</p>
+    </section>
+
+    <!-- STATS -->
+    <section id="tab-stats" class="screen scroll" aria-label="Stats">
+      <h1 class="title">Stats</h1>
+      <div id="stats-body"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="tab-settings" class="screen scroll" aria-label="Settings">
+      <h1 class="title">Settings</h1>
+      <div class="form" id="settings-form"></div>
+    </section>
+
+    <!-- HELP -->
+    <section id="tab-help" class="screen scroll help" aria-label="Help">
+      <h1 class="title">Help</h1>
+      <div class="help-body" id="help-body"></div>
+    </section>
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button data-tab="practice" class="active"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="11" height="16" rx="2"/><rect x="9" y="6" width="11" height="16" rx="2" fill="currentColor" fill-opacity=".25"/></svg>Practice</button>
+    <button data-tab="strategy"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/></svg>Strategy</button>
+    <button data-tab="rules"><svg viewBox="0 0 24 24"><text x="2" y="11" font-size="9" fill="currentColor" stroke="none" font-weight="700">3</text><text x="8" y="16" font-size="7" fill="currentColor" stroke="none">to</text><text x="15" y="21" font-size="9" fill="currentColor" stroke="none" font-weight="700">2</text></svg>House Rules</button>
+    <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+    <button data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Settings</button>
+    <button data-tab="help"><svg viewBox="0 0 24 24"><path d="M9 9a3 3 0 1 1 4.5 2.6c-.9.5-1.5 1.2-1.5 2.4"/><circle cx="12" cy="18" r=".8" fill="currentColor"/></svg>Help</button>
+  </nav>
+
+  <!-- Hint / analysis sheet -->
+  <div class="sheet hidden" id="hint-sheet" role="dialog" aria-modal="true" aria-labelledby="hint-title">
+    <div class="sheet-bar"><button class="link" id="hint-done">Done</button><span>Strategic Analysis</span><span></span></div>
+    <div class="sheet-body" id="hint-body"></div>
+  </div>
+
+  <!-- Generic modal (count quiz, custom mode chooser, skill chooser, history) -->
+  <div class="sheet hidden" id="modal" role="dialog" aria-modal="true">
+    <div class="sheet-bar"><button class="link" id="modal-done">Done</button><span id="modal-title"></span><span></span></div>
+    <div class="sheet-body" id="modal-body"></div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
