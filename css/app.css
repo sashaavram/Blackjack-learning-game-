@@ -93,7 +93,7 @@ body.left-handed .table { flex-direction: row-reverse; }
 }
 .dealer-area { min-height: calc(var(--cw) * 1.4 + 22px); }
 .player-area {
-  display: flex; flex-wrap: wrap; gap: 10px 14px; align-content: flex-start; padding-top: 6px;
+  display: flex; flex-wrap: wrap; gap: 10px 14px; align-content: flex-start; align-items: flex-start; padding-top: 6px;
   min-height: calc(var(--cw) * 1.4 + 26px);
 }
 .player-area.multi { --cw: min(16vw, 76px); flex-wrap: nowrap; }
@@ -318,6 +318,10 @@ input[type="range"] { width: 45%; accent-color: var(--cream); }
 @media (min-width: 600px) {
   :root { --cw: 108px; }
   .screen.active, .screen.scroll.active { max-width: 560px; margin: 0 auto; }
+}
+/* Tall phones (e.g. iPhone 16 as a Home Screen app): bigger cards. */
+@media (min-height: 780px) and (max-width: 599px) {
+  :root { --cw: min(28vw, 124px); }
 }
 @media (max-height: 700px) {
   :root { --cw: min(19vw, 90px); }
