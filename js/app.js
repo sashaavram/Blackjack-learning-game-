@@ -6,6 +6,7 @@ import {
 import { pickSituation, PLAY_ROWS } from './drill.js';
 import { analysis, situationLabel } from './explain.js';
 import { load, save, freshStats } from './store.js';
+import { guideHTML } from './rules-guide.js';
 import { configure as configureAnim, animateTable, sweepTable, resetSeen } from './anim.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -607,6 +608,7 @@ function renderStrategy() {
       h('p', { class: 'note' }, 'Where a symbol has two actions, do the first if it is allowed, otherwise the second (e.g. "D": double if you still have only 2 cards, otherwise hit).'),
       h('p', { class: 'note' }, 'This chart is calculated exactly for the selected house rules (expected value of every play, with the cards already dealt removed from the shoe).'),
     ),
+    (() => { const g = h('div', { class: 'guide-body', id: 'sc-basic' }); g.innerHTML = guideHTML(r); return g; })(),
   );
   if (cur) {
     const sec = cur.row[0] === 'h' ? 'hard' : cur.row[0] === 's' ? 'soft' : 'pairs';
