@@ -204,6 +204,7 @@ body.dealing .total { opacity: 0; transition: none; }
   opacity: 0.9; line-height: 1.3;
 }
 .rules-summary i { font-size: 14px; }
+.practice-note { display: inline-block; color: var(--gold); font-size: 12px; margin-bottom: 2px; }
 
 /* ---------- forms (rules / settings) ---------- */
 .group-title { background: var(--bar-2); font-size: 12px; padding: 4px 12px; margin-top: 10px; }

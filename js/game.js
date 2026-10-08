@@ -31,7 +31,11 @@ export class Game {
     if (this.inRound) throw new Error('round in progress');
     if (bet > this.bankroll) throw new Error('insufficient bankroll');
     this.shuffled = false;
-    if (this.shoe.needsShuffle) { this.shoe.shuffle(); this.shuffled = true; }
+    // Practice situations are dealt from a freshly shuffled full shoe, so
+    // picking the same kind of cards hand after hand (e.g. an Ace in Soft
+    // mode) never drains the shoe and skews the dealer's cards.
+    if (setup) this.shoe.shuffle();
+    else if (this.shoe.needsShuffle) { this.shoe.shuffle(); this.shuffled = true; }
     const pull = (r) => {
       const c = (r !== undefined && this.shoe.take(r)) || this.shoe.draw();
       return c;

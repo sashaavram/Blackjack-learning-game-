@@ -59,12 +59,15 @@ export class Shoe {
     if (!this.cards.length) this.shuffle();
     return this.cards.pop();
   }
-  // Remove a specific rank from the shoe (used to set up practice situations).
+  // Remove a card of a specific rank (used to set up practice situations).
+  // The card is picked at random among the matching cards, so the rest of the
+  // shoe stays a fair random order. (Taking the topmost match would leave the
+  // next card biased against that rank — e.g. the dealer's hole card.)
   take(r) {
-    let i = this.cards.length - 1;
-    while (i >= 0 && this.cards[i].r !== r) i--;
-    if (i < 0) return null;
-    return this.cards.splice(i, 1)[0];
+    const idx = [];
+    for (let i = 0; i < this.cards.length; i++) if (this.cards[i].r === r) idx.push(i);
+    if (!idx.length) return null;
+    return this.cards.splice(idx[Math.floor(this.rnd() * idx.length)], 1)[0];
   }
   see(card) { this.runningCount += hiLo(card); }
 }

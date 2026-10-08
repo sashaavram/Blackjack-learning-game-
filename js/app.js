@@ -200,7 +200,9 @@ function renderPractice() {
   // Mode controls
   for (const b of $$('#mode-seg button')) b.classList.toggle('on', b.dataset.mode === S.mode);
   $('#skill-label').textContent = { normal: 'Norm', beg: 'Beg', med: 'Med', adv: 'Adv' }[S.skill];
-  $('#rules-summary').innerHTML = '<i>House Rules</i><br>' + rulesLines(S.rules).join(' · ');
+  const practice = S.mode !== 'all' || S.skill !== 'normal';
+  $('#rules-summary').innerHTML = (practice ? '<span class="practice-note">Practice deal: hands are picked for training, so cash results aren’t casino-realistic. Use All + Norm for real odds.</span><br>' : '') +
+    '<i>House Rules</i><br>' + rulesLines(S.rules).join(' · ');
   return currentTab === 'practice' ? animateCards() : 0;
 }
 
@@ -705,7 +707,7 @@ function renderSettings() {
     h('div', { class: 'group-title' }, 'Card Counting (Hi-Lo)'),
     optRow('Count', s.counting, [['off', 'Off'], ['show', 'Show'], ['quiz', 'Quiz me']], (v) => setSetting('counting', v)),
     s.counting === 'quiz' ? optRow('Quiz every', s.quizEvery, [[3, '3'], [5, '5'], [10, '10']], (v) => setSetting('quizEvery', v), 'hands') : null,
-    h('p', { class: 'explain' }, 'Hi-Lo: 2–6 = +1, 7–9 = 0, 10/A = −1. True count = running count ÷ decks remaining. The shoe is reshuffled at 75% penetration. Note: the practice modes (Soft, Pairs, Custom, Drill, skill levels) pick cards out of the shoe on purpose, so the count is only realistic in All mode with Normal skill.'),
+    h('p', { class: 'explain' }, 'Hi-Lo: 2–6 = +1, 7–9 = 0, 10/A = −1. True count = running count ÷ decks remaining. The shoe is reshuffled at 75% penetration. Counting only works in All mode with Normal skill: the practice modes (Soft, Pairs, Custom, Drill, skill levels) deal each hand from a freshly shuffled shoe, so the count starts at 0 every hand.'),
     h('div', { class: 'group-title' }, 'Bankroll'),
     optRow('Starting bankroll', s.startBankroll, [[500, '$500'], [1000, '$1,000'], [5000, '$5,000']], (v) => setSetting('startBankroll', v)),
     h('div', { class: 'btn-row' }, h('button', { class: 'btn', onclick: resetBankroll }, 'Reset bankroll')),
@@ -734,7 +736,7 @@ function renderStats() {
       tile(st.wagered ? (st.net >= 0 ? '+' : '') + pct(st.net / st.wagered, 2) : '—', 'Return on money wagered', sign(st.net)),
       tile(money(st.mistakeCost), 'Expected cost of your mistakes', st.mistakeCost > 0.004 ? 'neg' : ''),
     ),
-    h('p', { class: 'explain' }, 'Expected cost of mistakes = for every non-book play you actually made, (EV of the book play − EV of your play) × your bet, using exact EVs for your house rules. Your real result also includes luck; this number does not. Even perfect basic strategy has a small house edge (about 0.3–0.6% of money wagered with good rules).'),
+    h('p', { class: 'explain' }, 'Expected cost of mistakes = for every non-book play you actually made, (EV of the book play − EV of your play) × your bet, using exact EVs for your house rules. Your real result also includes luck; this number does not. Even perfect basic strategy has a small house edge (about 0.3–0.6% of money wagered with good rules). Cash results only reflect real casino odds in All mode with Normal skill: the practice modes pick hands for training (and never deal you a blackjack), so they change your results.'),
     h('div', { class: 'group-title' }, 'Accuracy'),
     h('div', { class: 'stat-grid' },
       tile(st.decisions ? pct(1 - st.errors / st.decisions) : '—', `Correct (${st.decisions - st.errors} of ${st.decisions} decisions)`),
