@@ -1,8 +1,8 @@
 // Offline support: cache the app shell, serve from cache, refresh in the background.
-const CACHE = 'bj-trainer-v1';
+const CACHE = 'bj-trainer-v2';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
-  'js/app.js', 'js/cards.js', 'js/drill.js', 'js/explain.js', 'js/game.js', 'js/store.js', 'js/strategy.js', 'js/strategy-data.js',
+  'js/anim.js', 'js/app.js', 'js/cards.js', 'js/drill.js', 'js/explain.js', 'js/game.js', 'js/store.js', 'js/strategy.js', 'js/strategy-data.js',
   'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png',
 ];
 self.addEventListener('install', (e) => {

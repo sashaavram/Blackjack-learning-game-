@@ -6,6 +6,7 @@ import {
 import { pickSituation, PLAY_ROWS } from './drill.js';
 import { analysis, situationLabel } from './explain.js';
 import { load, save, freshStats } from './store.js';
+import { configure as configureAnim, animateTable, sweepTable, resetSeen } from './anim.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -32,6 +33,7 @@ let chart = buildChart(S.rules);
 let currentTab = 'practice';
 let roundMistakes = [];
 let roundDecisions = 0;
+let dealOrder = [];
 let pending = null; // decision awaiting retry (block) or confirmation (warn)
 let autoTimer = null;
 let dealerTimer = null;
@@ -69,6 +71,25 @@ function beep(good) {
     o.stop(t + 0.32);
   } catch { /* audio unavailable */ }
 }
+// Short filtered-noise "snap" when a card lands on the felt.
+function cardSound() {
+  if (!S.settings.sound) return;
+  try {
+    audio ||= new (window.AudioContext || window.webkitAudioContext)();
+    const t = audio.currentTime, len = Math.floor(audio.sampleRate * 0.06);
+    const buf = audio.createBuffer(1, len, audio.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+    const src = audio.createBufferSource(), f = audio.createBiquadFilter(), g = audio.createGain();
+    src.buffer = buf;
+    f.type = 'bandpass';
+    f.frequency.value = 2400;
+    f.Q.value = 0.8;
+    g.gain.value = 0.35;
+    src.connect(f).connect(g).connect(audio.destination);
+    src.start(t);
+  } catch { /* audio unavailable */ }
+}
 const buzz = () => S.settings.vibrate && navigator.vibrate?.(150);
 
 function toast(msg, ms = 1800) {
@@ -81,13 +102,27 @@ function toast(msg, ms = 1800) {
 
 /* ============================== cards ============================== */
 function cardEl(c, faceDown) {
-  if (faceDown) return h('div', { class: 'card back', 'aria-label': 'face-down card' });
   const face = ['J', 'Q', 'K'].includes(c.f);
-  return h('div', { class: 'card' + (isRed(c) ? ' red' : ''), 'aria-label': c.f + c.s },
-    h('div', { class: 'corner' }, c.f, h('span', { class: 's' }, c.s)),
-    face ? h('div', { class: 'pip face' }, c.f, h('small', {}, c.s)) : h('div', { class: 'pip' }, c.s),
-    h('div', { class: 'corner br' }, c.f, h('span', { class: 's' }, c.s)));
+  return h('div', { class: 'card' + (isRed(c) ? ' red' : '') + (faceDown ? ' down' : ''), 'data-id': c.id, 'aria-label': faceDown ? 'face-down card' : c.f + c.s },
+    h('div', { class: 'front' },
+      h('div', { class: 'corner' }, c.f, h('span', { class: 's' }, c.s)),
+      face ? h('div', { class: 'pip face' }, c.f, h('small', {}, c.s)) : h('div', { class: 'pip' }, c.s),
+      h('div', { class: 'corner br' }, c.f, h('span', { class: 's' }, c.s))),
+    h('div', { class: 'back' }));
 }
+
+// Block input while cards are moving; returns the animation time in ms.
+let busyTimer = null;
+function animateCards() {
+  const ms = animateTable($('#table'), $('#shoe'), dealOrder);
+  if (ms > 0) {
+    document.body.classList.add('dealing');
+    clearTimeout(busyTimer);
+    busyTimer = setTimeout(() => document.body.classList.remove('dealing'), ms);
+  }
+  return ms;
+}
+const isBusy = () => document.body.classList.contains('dealing');
 
 function totalText(cards, fromSplit = false) {
   const t = handTotal(cards);
@@ -165,6 +200,7 @@ function renderPractice() {
   for (const b of $$('#mode-seg button')) b.classList.toggle('on', b.dataset.mode === S.mode);
   $('#skill-label').textContent = { normal: 'Norm', beg: 'Beg', med: 'Med', adv: 'Adv' }[S.skill];
   $('#rules-summary').innerHTML = '<i>House Rules</i><br>' + rulesLines(S.rules).join(' · ');
+  return currentTab === 'practice' ? animateCards() : 0;
 }
 
 const fmtCount = (x) => (x > 0 ? '+' : '') + x;
@@ -192,13 +228,21 @@ function clearAuto() { clearTimeout(autoTimer); autoTimer = null; }
 
 function deal() {
   clearAuto();
-  if (game.inRound) return;
+  if (game.inRound || isBusy()) return;
   if (game.bankroll < MIN_BET) return outOfMoney();
   if (bet < MIN_BET) { bet = Math.min(Math.max(S.lastBet, MIN_BET), game.bankroll); if (bet < MIN_BET) return outOfMoney(); }
   if (bet > game.bankroll) bet = game.bankroll;
   if (S.settings.counting === 'quiz' && handsSinceQuiz >= S.settings.quizEvery && game.shoe.remaining < game.shoe.total) {
     return countQuiz(() => { handsSinceQuiz = 0; deal(); });
   }
+  const sweep = game.dealer.length ? sweepTable($('#table')) : 0;
+  if (sweep) {
+    document.body.classList.add('dealing');
+    setTimeout(() => { document.body.classList.remove('dealing'); startRound(); }, sweep);
+  } else startRound();
+}
+
+function startRound() {
   game.setRules(S.rules);
   let setup = pickSituation({ mode: S.mode, skill: S.skill, chart, custom: S.custom, mistakes: S.sit });
   if (!setup && S.mode === 'drill') toast('No mistakes recorded yet — dealing a normal hand.');
@@ -208,6 +252,8 @@ function deal() {
   pending = null;
   lastFeedback = { text: '', cls: '' };
   game.start(bet, setup || undefined);
+  resetSeen();
+  dealOrder = [game.hands[0].cards[0], game.dealer[0], game.hands[0].cards[1], game.dealer[1]].map((c) => c.id);
   if (game.shuffled) toast('New shoe shuffled' + (S.settings.counting !== 'off' ? ' — count resets to 0' : ''));
   $('#round-msg').textContent = '';
   S.stats.hands++;
@@ -215,21 +261,22 @@ function deal() {
   afterAction();
 }
 
+// Render, then let the cards finish moving before the dealer plays or the
+// round is settled.
 function afterAction() {
-  if (game.phase === 'dealer') return runDealer();
-  if (game.phase === 'done') return endRound();
-  renderPractice();
+  const ms = renderPractice();
+  if (game.phase === 'dealer') dealerTimer = setTimeout(runDealer, ms);
+  else if (game.phase === 'done') dealerTimer = setTimeout(endRound, ms ? ms + 150 : 0);
 }
 
 function runDealer() {
-  renderPractice();
   const step = () => {
     const more = game.dealerStep();
-    renderPractice();
-    if (more) dealerTimer = setTimeout(step, S.settings.dealerSpeed * 1000);
+    const ms = renderPractice();
+    if (more) dealerTimer = setTimeout(step, Math.max(S.settings.dealerSpeed * 1000, ms + 120));
     else endRound();
   };
-  dealerTimer = setTimeout(step, S.settings.dealerSpeed * 700);
+  dealerTimer = setTimeout(step, S.settings.dealerSpeed * 500);
 }
 
 function endRound() {
@@ -316,7 +363,7 @@ function feedback(ok, text) {
 // Called when the player taps an action. Applies the house's mistake policy.
 function onAction(a) {
   clearAuto();
-  if (game.phase !== 'player' || pending?.warn) return;
+  if (game.phase !== 'player' || pending?.warn || isBusy()) return;
   const s = game.situation();
   const key = s.row + '|' + s.up;
   const label = situationLabel(s.row, s.up);
@@ -387,7 +434,7 @@ function flashButton(a) {
 }
 
 function onInsurance(take) {
-  if (game.phase !== 'insurance') return;
+  if (game.phase !== 'insurance' || isBusy()) return;
   const p = game.tenDensity();
   const insCost = take ? Math.max(0, -(3 * p - 1) * (game.baseBet / 2)) : 0;
   const mode = S.settings.mistakeMode;
@@ -625,6 +672,7 @@ function setSetting(k, v) {
 }
 function applySettings() {
   document.body.classList.toggle('left-handed', S.settings.hand === 'left');
+  configureAnim({ animations: S.settings.animations, landSound: cardSound });
 }
 
 function renderSettings() {
@@ -649,6 +697,7 @@ function renderSettings() {
     switchRow('Vibrate on Incorrect', s.vibrate, (v) => setSetting('vibrate', v), canVibrate ? null : 'Not supported by Safari on iPhone'),
     switchRow('Show Totals', s.showTotals, (v) => setSetting('showTotals', v)),
     h('div', { class: 'group-title' }, 'Game Speed'),
+    switchRow('Card animations', s.animations, (v) => setSetting('animations', v), 'Cards fly from the shoe and flip over'),
     rangeRow('Dealer speed', s.dealerSpeed, 0.2, 1.5, 0.1, (v) => v.toFixed(1) + ' s per card', (v) => { S.settings.dealerSpeed = v; persist(); }),
     rangeRow('Auto-deal next hand', s.autoDeal, 0, 4, 0.5, (v) => (v ? v.toFixed(1) + ' s after a hand' : 'Off — tap Deal'), (v) => { S.settings.autoDeal = v; persist(); }),
     h('div', { class: 'group-title' }, 'Card Counting (Hi-Lo)'),

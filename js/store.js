@@ -14,6 +14,7 @@ export const DEFAULT_SETTINGS = {
   mistakeMode: 'warn', // warn | block | free
   autoDeal: 0, // seconds; 0 = tap Deal manually
   dealerSpeed: 0.6, // seconds per dealer card
+  animations: true,
   counting: 'off', // off | show | quiz
   quizEvery: 5,
   startBankroll: 1000,
