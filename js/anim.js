@@ -1,4 +1,4 @@
-// Card animations: cards fly out of the shoe (flipping face-up on the way),
+// Card animations: cards fly in from the top corner of the table (flipping face-up on the way),
 // the hole card flips over, and the old cards are swept off before a new deal.
 
 const FLY_MS = 420;
@@ -42,7 +42,7 @@ export function animateTable(root, shoeEl, order = []) {
 
   const shoe = shoeEl.getBoundingClientRect();
   const sx = shoe.left + shoe.width / 2;
-  const sy = shoe.top + shoe.height * 0.25;
+  const sy = shoe.top;
   let total = 0;
   fresh.forEach((el, i) => {
     const r = el.getBoundingClientRect();
@@ -53,7 +53,9 @@ export function animateTable(root, shoeEl, order = []) {
     const delay = i * STAGGER_MS;
     el.animate(
       [
-        { transform: `translate(${dx}px, ${dy}px) rotate(-20deg) scale(0.55) rotateY(180deg)` },
+        { transform: `translate(${dx}px, ${dy}px) rotate(-20deg) scale(0.55) rotateY(180deg)`, visibility: 'hidden' },
+        // visibility (not opacity) so the 3D flip keeps the face hidden
+        { visibility: 'visible', offset: 0.02 },
         { transform: `translate(${dx * 0.25}px, ${dy * 0.25 - 12}px) rotate(-4deg) scale(1.04) ${up ? 'rotateY(90deg)' : 'rotateY(180deg)'}`, offset: 0.7 },
         { transform: end },
       ],

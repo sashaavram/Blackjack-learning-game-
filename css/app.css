@@ -121,7 +121,7 @@ body.left-handed .table { flex-direction: row-reverse; }
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
 }
 .card > .front { background: #fff; }
-.card > .back, .shoe-card {
+.card > .back {
   transform: rotateY(180deg);
   background:
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 7px),
@@ -144,22 +144,9 @@ body.left-handed .table { flex-direction: row-reverse; }
 }
 .card .pip.face small { font-size: 0.7em; }
 
-/* Dealing shoe in the top corner of the table; cards fly out of it. */
+/* Invisible anchor in the top corner of the table: cards fly in from here. */
 .felt { position: relative; }
-.shoe {
-  position: absolute; top: 2px; right: 2px; width: calc(var(--cw) * 0.62); height: calc(var(--cw) * 0.8);
-  border-radius: 6px 6px 10px 10px; background: linear-gradient(#24313a, #182229);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45), inset 0 0 0 2px rgba(255, 255, 255, 0.08);
-  transform: rotate(-8deg); pointer-events: none; z-index: 0;
-}
-.shoe-card {
-  position: absolute; left: 12%; right: 12%; top: -14%; height: 62%; border-radius: 4px;
-  transform: none; border-width: 2px;
-}
-.shoe::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 52%;
-  border-radius: 0 0 10px 10px; background: linear-gradient(#2c3b46, #1b262d);
-}
+.shoe { position: absolute; top: 0; right: 0; width: 1px; height: 1px; visibility: hidden; pointer-events: none; }
 .dealer-area, .player-area { position: relative; z-index: 1; }
 body.dealing .actions, body.dealing .warn-panel, body.dealing #table { pointer-events: none; }
 body.dealing .insurance-panel, body.dealing .badge, body.dealing .round-msg { visibility: hidden; }
